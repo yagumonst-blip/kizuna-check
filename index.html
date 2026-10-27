@@ -106,5 +106,32 @@ document.getElementById("dashboard").classList.add("hidden");
 document.getElementById("join").classList.remove("hidden");
 }
 </script>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+  // 次にFirebaseの設定情報をここへ追加します
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDOzRKQbr1GxUy5Jh5i3cxN86iuob5s_bw",
+  authDomain: "kizuna-check-app.firebaseapp.com",
+  projectId: "kizuna-check-app",
+  storageBucket: "kizuna-check-app.firebasestorage.app",
+  messagingSenderId: "142620988190",
+  appId: "1:142620988190:web:1a1fa7de57e8b4e4786f0f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+signInAnonymously(auth)
+  .then(() => {
+    console.log("Firebase匿名ログイン成功！");
+  })
+  .catch((error) => {
+    console.error("ログイン失敗:", error);
+  });
+    
+</script>
 </body>
 </html>
