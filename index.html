@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -9,129 +8,155 @@
 *{box-sizing:border-box}
 body{margin:0;background:#0e1020;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
 header{padding:25px 20px;background:#171b34;border-bottom:1px solid #353a5e}
-h1{margin:0;font-size:25px}
-small{color:#a5a9d2}
+h1{margin:0;font-size:25px}small{color:#a5a9d2}
 main{max-width:520px;margin:auto;padding:20px}
 .card{background:#1b203b;border:1px solid #383f69;border-radius:20px;padding:20px;margin-bottom:18px}
 h2{font-size:19px;margin:0 0 16px}
 input,button{font:inherit;border-radius:12px;padding:14px;width:100%}
 input{background:#10152a;border:1px solid #555d87;color:white;margin-bottom:12px}
 button{background:linear-gradient(120deg,#4479ff,#9859f6);border:0;color:white;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
 .secondary{background:#333c61;margin-top:10px}
-.member{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #343b5b}
-.member button{width:auto;padding:9px 13px;font-size:13px}
+.member{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid #343b5b}
+.member button{width:auto;padding:9px 13px;font-size:13px;white-space:nowrap}
 .notice{color:#b6bce0;font-size:13px;line-height:1.7}
 .hidden{display:none}
+.error{color:#ffb7b7}
 </style>
 </head>
 <body>
-<header>
-<small>KIZUNA CHECK</small>
-<h1>✨ 絆チェック</h1>
-</header>
+<header><small>KIZUNA CHECK</small><h1>✨ 絆チェック</h1></header>
 <main>
 <section class="card" id="join">
 <h2>🔑 グループに参加</h2>
-<p class="notice">招待コードを入力してください。</p>
-<input id="code" placeholder="招待コード">
-<input id="nickname" placeholder="表示名">
-<button onclick="joinDemo()">参加する</button>
+<p class="notice">招待コードと表示名を入力してください。</p>
+<input id="code" placeholder="招待コード" autocomplete="off">
+<input id="nickname" placeholder="表示名" maxlength="30">
+<button id="joinButton" disabled>接続中…</button>
 <p class="notice" id="message"></p>
 </section>
-
 <section id="dashboard" class="hidden">
-<div class="card">
-<h2>👥 絆チェックグループ</h2>
-<p id="welcome"></p>
-<p class="notice">現在は画面確認用のデモモードです。</p>
-</div>
-<div class="card">
-<h2>✅ 絆チェック</h2>
-<div id="members"></div>
-<button class="secondary" onclick="addMember()">＋ メンバーを追加</button>
-</div>
-<div class="card">
-<h2>⏰ 募集時間</h2>
-<input id="time" type="time" value="20:00">
-<button onclick="saveTime()">募集時間を登録</button>
-<p id="timeResult" class="notice"></p>
-</div>
-<button class="secondary" onclick="leave()">参加画面に戻る</button>
+<div class="card"><h2>👥 絆チェックグループ</h2><p id="welcome"></p><p class="notice" id="dateLabel"></p><p class="notice" id="status"></p></div>
+<div class="card"><h2>✅ 今日の絆チェック</h2><div id="members"></div><p class="notice">日付が変わると全員「未チェック」に戻ります。</p></div>
+<div class="card"><h2>⏰ 募集時間</h2><input id="time" type="time" value="20:00"><button id="saveTimeButton">募集時間を登録</button><p id="timeResult" class="notice"></p></div>
+<button class="secondary" id="leaveButton">参加画面に戻る</button>
 </section>
 </main>
-<script>
-let members=[
-{name:"メンバーA",checked:false},
-{name:"メンバーB",checked:false}
-];
-function joinDemo(){
-const code=document.getElementById("code").value.trim();
-const name=document.getElementById("nickname").value.trim();
-if(!code||!name){
-document.getElementById("message").textContent="招待コードと表示名を入力してください。";
-return;
-}
-document.getElementById("join").classList.add("hidden");
-document.getElementById("dashboard").classList.remove("hidden");
-document.getElementById("welcome").textContent="ようこそ、"+name+"さん！";
-render();
-}
-function render(){
-document.getElementById("members").innerHTML="";
-members.forEach((m,i)=>{
-const row=document.createElement("div");
-row.className="member";
-const label=document.createElement("span");
-label.textContent=m.name;
-const btn=document.createElement("button");
-btn.textContent=m.checked?"✓ 済み":"未チェック";
-btn.onclick=()=>{m.checked=!m.checked;render()};
-row.append(label,btn);
-document.getElementById("members").append(row);
-});
-}
-function addMember(){
-const name=prompt("メンバー名を入力");
-if(name&&name.trim()){
-members.push({name:name.trim(),checked:false});
-render();
-}
-}
-function saveTime(){
-document.getElementById("timeResult").textContent=
-"募集時間："+document.getElementById("time").value+"（デモ表示）";
-}
-function leave(){
-document.getElementById("dashboard").classList.add("hidden");
-document.getElementById("join").classList.remove("hidden");
-}
-</script>
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-  // 次にFirebaseの設定情報をここへ追加します
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDOzRKQbr1GxUy5Jh5i3cxN86iuob5s_bw",
-  authDomain: "kizuna-check-app.firebaseapp.com",
-  projectId: "kizuna-check-app",
-  storageBucket: "kizuna-check-app.firebasestorage.app",
-  messagingSenderId: "142620988190",
-  appId: "1:142620988190:web:1a1fa7de57e8b4e4786f0f"
+  apiKey: 'AIzaSyDOzRKQbr1GxUy5Jh5i3cxN86iuob5s_bw',
+  authDomain: 'kizuna-check-app.firebaseapp.com',
+  projectId: 'kizuna-check-app',
+  storageBucket: 'kizuna-check-app.firebasestorage.app',
+  messagingSenderId: '142620988190',
+  appId: '1:142620988190:web:1a1fa7de57e8b4e4786f0f'
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+const groupRef = doc(db, 'groups', 'main');
+const $ = id => document.getElementById(id);
+let currentUid = null;
+let currentName = '';
+let unsubscribe = null;
+let members = {};
+let groupData = {};
+let lastDay = '';
 
-signInAnonymously(auth)
-  .then(() => {
-    console.log("Firebase匿名ログイン成功！");
-  })
-  .catch((error) => {
-    console.error("ログイン失敗:", error);
-  });
-    
+function japanDay() {
+  return new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+}
+function showError(error, target='message') {
+  console.error(error);
+  $(target).textContent = 'エラー: ' + (error?.code || error?.message || String(error));
+  $(target).classList.add('error');
+}
+function showDashboard() {
+  $('join').classList.add('hidden');
+  $('dashboard').classList.remove('hidden');
+  $('welcome').textContent = 'ようこそ、' + currentName + 'さん！';
+  if (unsubscribe) unsubscribe();
+  unsubscribe = onSnapshot(groupRef, snap => {
+    if (!snap.exists()) { $('status').textContent='グループが見つかりません'; return; }
+    groupData = snap.data();
+    members = groupData.members || {};
+    $('time').value = groupData.recruitTime || '20:00';
+    $('timeResult').textContent = '募集時間：' + (groupData.recruitTime || '20:00');
+    render();
+  }, err => showError(err, 'status'));
+}
+function render() {
+  const today = japanDay();
+  lastDay = today;
+  $('dateLabel').textContent = '今日：' + today + '（日本時間）';
+  const box = $('members');
+  box.replaceChildren();
+  const entries = Object.entries(members).sort((a,b) => (a[1].name||'').localeCompare(b[1].name||'', 'ja'));
+  if (!entries.length) { const p=document.createElement('p');p.className='notice';p.textContent='まだメンバーがいません。';box.append(p); }
+  for (const [uid, member] of entries) {
+    const checked = member.checkedDay === today;
+    const row = document.createElement('div'); row.className='member';
+    const label = document.createElement('span'); label.textContent = (member.name || '名前未設定') + (uid === currentUid ? '（自分）' : '');
+    const button = document.createElement('button');
+    button.textContent = checked ? '✓ 貯めた' : '未チェック';
+    button.disabled = uid !== currentUid;
+    button.title = uid !== currentUid ? '本人だけが変更できます' : '';
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try { await updateDoc(groupRef, { [`members.${currentUid}.checkedDay`]: checked ? '' : japanDay() }); }
+      catch (e) { showError(e, 'status'); }
+      finally { button.disabled = false; }
+    });
+    row.append(label, button); box.append(row);
+  }
+}
+
+async function join() {
+  $('message').textContent=''; $('message').classList.remove('error');
+  const code = $('code').value.trim();
+  const name = $('nickname').value.trim();
+  if (!code || !name) { $('message').textContent='招待コードと表示名を入力してください。'; return; }
+  if (!currentUid) { $('message').textContent='接続中です。少し待ってから試してください。'; return; }
+  $('joinButton').disabled=true;
+  try {
+    const snap = await getDoc(groupRef);
+    if (!snap.exists()) throw new Error('groups/main が見つかりません');
+    if (snap.data().inviteCode !== code) { $('message').textContent='招待コードが違います。'; return; }
+    // 簡易版：グループ内の名前と日付だけを共有する。
+    // 同じ端末の匿名UIDを使うため、ブラウザデータ削除時は再登録が必要。
+    const old = snap.data().members?.[currentUid] || {};
+    await updateDoc(groupRef, { [`members.${currentUid}`]: {name, checkedDay: old.checkedDay || ''} });
+    currentName = name;
+    sessionStorage.setItem('kizunaName', name);
+    showDashboard();
+  } catch(e) { showError(e); }
+  finally { $('joinButton').disabled=false; }
+}
+async function saveTime() {
+  $('timeResult').textContent='保存中…';
+  try { await updateDoc(groupRef, {recruitTime:$('time').value}); }
+  catch(e) { showError(e, 'timeResult'); }
+}
+function leave() {
+  if (unsubscribe) { unsubscribe(); unsubscribe=null; }
+  sessionStorage.removeItem('kizunaName');
+  $('dashboard').classList.add('hidden');
+  $('join').classList.remove('hidden');
+  $('code').value='';
+  $('message').textContent='';
+}
+$('joinButton').addEventListener('click', join);
+$('saveTimeButton').addEventListener('click', saveTime);
+$('leaveButton').addEventListener('click', leave);
+onAuthStateChanged(auth, user => {
+  if (user) { currentUid=user.uid; $('joinButton').disabled=false; $('joinButton').textContent='参加する'; }
+  else signInAnonymously(auth).catch(e => showError(e));
+});
+setInterval(() => { if (!$('dashboard').classList.contains('hidden') && lastDay !== japanDay()) render(); }, 15000);
 </script>
 </body>
 </html>
