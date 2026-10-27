@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>絆チェック</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0e1020;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+header{padding:25px 20px;background:#171b34;border-bottom:1px solid #353a5e}
+h1{margin:0;font-size:25px}
+small{color:#a5a9d2}
+main{max-width:520px;margin:auto;padding:20px}
+.card{background:#1b203b;border:1px solid #383f69;border-radius:20px;padding:20px;margin-bottom:18px}
+h2{font-size:19px;margin:0 0 16px}
+input,button{font:inherit;border-radius:12px;padding:14px;width:100%}
+input{background:#10152a;border:1px solid #555d87;color:white;margin-bottom:12px}
+button{background:linear-gradient(120deg,#4479ff,#9859f6);border:0;color:white;font-weight:bold;cursor:pointer}
+.secondary{background:#333c61;margin-top:10px}
+.member{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #343b5b}
+.member button{width:auto;padding:9px 13px;font-size:13px}
+.notice{color:#b6bce0;font-size:13px;line-height:1.7}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+<small>KIZUNA CHECK</small>
+<h1>✨ 絆チェック</h1>
+</header>
+<main>
+<section class="card" id="join">
+<h2>🔑 グループに参加</h2>
+<p class="notice">招待コードを入力してください。</p>
+<input id="code" placeholder="招待コード">
+<input id="nickname" placeholder="表示名">
+<button onclick="joinDemo()">参加する</button>
+<p class="notice" id="message"></p>
+</section>
+
+<section id="dashboard" class="hidden">
+<div class="card">
+<h2>👥 絆チェックグループ</h2>
+<p id="welcome"></p>
+<p class="notice">現在は画面確認用のデモモードです。</p>
+</div>
+<div class="card">
+<h2>✅ 絆チェック</h2>
+<div id="members"></div>
+<button class="secondary" onclick="addMember()">＋ メンバーを追加</button>
+</div>
+<div class="card">
+<h2>⏰ 募集時間</h2>
+<input id="time" type="time" value="20:00">
+<button onclick="saveTime()">募集時間を登録</button>
+<p id="timeResult" class="notice"></p>
+</div>
+<button class="secondary" onclick="leave()">参加画面に戻る</button>
+</section>
+</main>
+<script>
+let members=[
+{name:"メンバーA",checked:false},
+{name:"メンバーB",checked:false}
+];
+function joinDemo(){
+const code=document.getElementById("code").value.trim();
+const name=document.getElementById("nickname").value.trim();
+if(!code||!name){
+document.getElementById("message").textContent="招待コードと表示名を入力してください。";
+return;
+}
+document.getElementById("join").classList.add("hidden");
+document.getElementById("dashboard").classList.remove("hidden");
+document.getElementById("welcome").textContent="ようこそ、"+name+"さん！";
+render();
+}
+function render(){
+document.getElementById("members").innerHTML="";
+members.forEach((m,i)=>{
+const row=document.createElement("div");
+row.className="member";
+const label=document.createElement("span");
+label.textContent=m.name;
+const btn=document.createElement("button");
+btn.textContent=m.checked?"✓ 済み":"未チェック";
+btn.onclick=()=>{m.checked=!m.checked;render()};
+row.append(label,btn);
+document.getElementById("members").append(row);
+});
+}
+function addMember(){
+const name=prompt("メンバー名を入力");
+if(name&&name.trim()){
+members.push({name:name.trim(),checked:false});
+render();
+}
+}
+function saveTime(){
+document.getElementById("timeResult").textContent=
+"募集時間："+document.getElementById("time").value+"（デモ表示）";
+}
+function leave(){
+document.getElementById("dashboard").classList.add("hidden");
+document.getElementById("join").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
